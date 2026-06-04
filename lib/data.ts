@@ -1,6 +1,7 @@
 import type {
   Equipment, WorkOrder, PMPlan, RoomImpact, VendorJob,
   Approval, RoleProfile, CategoryStat, WorkflowTemplate, Workflow, NonQRItem, ExpenditureBill,
+  ExpenditureBudgets,
 } from "./types";
 
 export const equipmentSeed: Equipment[] = [
@@ -203,9 +204,33 @@ export const utilityCategories: string[] = [
   "Other Fuels",
 ];
 
-export const expenditureBudgetsSeed: { utility: number; repair: number } = {
+export const expenditureBudgetsSeed: ExpenditureBudgets = {
   utility: 450000,
   repair: 200000,
+  utilityCategories: [
+    { category: "Electricity", amount: 380000 },
+    { category: "Water",       amount: 50000  },
+    { category: "Diesel",      amount: 15000  },
+    { category: "Other Fuels", amount: 5000   },
+  ],
+  repairCategories: [
+    { category: "Building",                              amount: 25000 },
+    { category: "Contract Services",                    amount: 20000 },
+    { category: "Electrical and Mechanical Equipment",  amount: 18000 },
+    { category: "Elevators and Escalators",             amount: 15000 },
+    { category: "Furniture and Equipment",              amount: 10000 },
+    { category: "Heating, Ventilation & Air Cond Equipment", amount: 20000 },
+    { category: "Kitchen Equipment",                    amount: 12000 },
+    { category: "Life and Safety",                      amount: 15000 },
+    { category: "Miscellaneous",                        amount: 10000 },
+    { category: "Painting and Decorating",              amount: 8000  },
+    { category: "Plumbing",                             amount: 12000 },
+    { category: "Swimming Pool",                        amount: 10000 },
+    { category: "Travel - Meal and Entertainment",      amount: 5000  },
+    { category: "Travel - Others",                      amount: 5000  },
+    { category: "Waste Removal",                        amount: 5000  },
+  ],
+  overrides: {},
 };
 
 export const expenditureBillsSeed: ExpenditureBill[] = [

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useMemo, useCallback } from "react";
-import type { Equipment, WorkOrder, MaintenanceRequest, Workflow, RoleProfile, NonQRItem, ExpenditureBill } from "./types";
+import type { Equipment, WorkOrder, MaintenanceRequest, Workflow, RoleProfile, NonQRItem, ExpenditureBill, ExpenditureBudgets, CategoryBudget } from "./types";
 import {
   equipmentSeed, workOrdersSeed, workflowsSeed, roleProfiles, nonQRItemsSeed,
   expenditureBillsSeed, expenditureBudgetsSeed,
@@ -11,7 +11,7 @@ interface StoreState {
   equipmentAssets: Equipment[];
   nonQRItems: NonQRItem[];
   bills: ExpenditureBill[];
-  budgets: { utility: number; repair: number };
+  budgets: ExpenditureBudgets;
   maintenanceRequests: MaintenanceRequest[];
   generatedWorkOrders: WorkOrder[];
   workflows: Workflow[];
@@ -30,6 +30,9 @@ interface StoreActions {
   addBill: (values: Omit<ExpenditureBill, "id" | "uploadedAt">) => ExpenditureBill;
   deleteBill: (id: string) => void;
   setBudget: (type: "utility" | "repair", amount: number) => void;
+  setCategoryBudget: (type: "utility" | "repair", category: string, amount: number) => void;
+  setCategoryBudgetOverride: (type: "utility" | "repair", month: string, category: string, amount: number) => void;
+  copyPrevMonthBudgets: (type: "utility" | "repair", targetMonth: string) => void;
   submitMaintenanceRequest: (values: Omit<MaintenanceRequest, "id" | "status" | "approvalStatus" | "assetName" | "submitted" | "approver">) => MaintenanceRequest;
   approveMaintenanceRequest: (request: MaintenanceRequest) => WorkOrder;
   addWorkflow: (workflow: Workflow) => void;
@@ -150,6 +153,44 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setBudgets((prev) => ({ ...prev, [type]: amount }));
   }, []);
 
+  const setCategoryBudget = useCallback((type: "utility" | "repair", category: string, amount: number) => {
+    const key = type === "utility" ? "utilityCategories" : "repairCategories";
+    setBudgets((prev) => {
+      const list: CategoryBudget[] = prev[key] ?? [];
+      const exists = list.find((c) => c.category === category);
+      const next = exists
+        ? list.map((c) => c.category === category ? { ...c, amount } : c)
+        : [...list, { category, amount }];
+      return { ...prev, [key]: next };
+    });
+  }, []);
+
+  const setCategoryBudgetOverride = useCallback((type: "utility" | "repair", month: string, category: string, amount: number) => {
+    const overrideKey = `${type}:${month}:${category}`;
+    setBudgets((prev) => ({ ...prev, overrides: { ...prev.overrides, [overrideKey]: amount } }));
+  }, []);
+
+  const copyPrevMonthBudgets = useCallback((type: "utility" | "repair", targetMonth: string) => {
+    // Parse targetMonth "YYYY-MM" and get previous month
+    const [y, m] = targetMonth.split("-").map(Number);
+    const prevDate = new Date(y, m - 2, 1);
+    const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, "0")}`;
+    const key = type === "utility" ? "utilityCategories" : "repairCategories";
+    setBudgets((prev) => {
+      const overrides = { ...prev.overrides };
+      const categories: CategoryBudget[] = prev[key] ?? [];
+      categories.forEach(({ category }) => {
+        const prevKey = `${type}:${prevMonth}:${category}`;
+        const targetKey = `${type}:${targetMonth}:${category}`;
+        const prevOverride = overrides[prevKey];
+        if (prevOverride !== undefined) {
+          overrides[targetKey] = prevOverride;
+        }
+      });
+      return { ...prev, overrides };
+    });
+  }, []);
+
   const submitMaintenanceRequest = useCallback((
     values: Omit<MaintenanceRequest, "id" | "status" | "approvalStatus" | "assetName" | "submitted" | "approver">
   ): MaintenanceRequest => {
@@ -217,11 +258,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       addBill,
       deleteBill,
       setBudget,
+      setCategoryBudget,
+      setCategoryBudgetOverride,
+      copyPrevMonthBudgets,
       submitMaintenanceRequest,
       approveMaintenanceRequest,
       addWorkflow,
     }),
-    [equipmentAssets, nonQRItems, bills, budgets, maintenanceRequests, generatedWorkOrders, workflows, roleId, activeRole, allWorkOrders, registerEquipment, updateEquipment, deleteEquipment, addNonQRItem, deleteNonQRItem, addBill, deleteBill, setBudget, submitMaintenanceRequest, approveMaintenanceRequest, addWorkflow]
+    [equipmentAssets, nonQRItems, bills, budgets, maintenanceRequests, generatedWorkOrders, workflows, roleId, activeRole, allWorkOrders, registerEquipment, updateEquipment, deleteEquipment, addNonQRItem, deleteNonQRItem, addBill, deleteBill, setBudget, setCategoryBudget, setCategoryBudgetOverride, copyPrevMonthBudgets, submitMaintenanceRequest, approveMaintenanceRequest, addWorkflow]
   );
 
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;

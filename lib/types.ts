@@ -165,6 +165,24 @@ export interface ExpenditureBill {
   uploadedAt: string;
 }
 
+export interface CategoryBudget {
+  category: string;
+  amount: number;
+}
+
+// key: "YYYY-MM:category", value: amount — overrides for specific months
+export type CategoryBudgetOverrides = Record<string, number>;
+
+export interface ExpenditureBudgets {
+  utility: number;
+  repair: number;
+  // per-category defaults (applies every month unless overridden)
+  utilityCategories: CategoryBudget[];
+  repairCategories: CategoryBudget[];
+  // month-specific overrides keyed as "type:YYYY-MM:category"
+  overrides: CategoryBudgetOverrides;
+}
+
 export interface MaintenanceDetailPayload {
   type:
     | "work-order"
