@@ -65,19 +65,6 @@ export const approvalsSeed: Approval[] = [
   { id: "APR-1024", item: "Guest room FCU spare kit bulk purchase", category: "Spares", value: "Rs 64,000", requester: "HVAC Supervisor", approver: "Chief Engineer", risk: "Repeat breakdown", status: "Supervisor Review", priority: "Medium", department: "Rooms", asset: "FCU-BATCH", submitted: "May 10, 2026", due: "May 12, 2026", justification: "Tower B has repeated FCU noise and condensate tickets; spare kit will reduce room downtime.", impact: "Reduces blocked room risk during high occupancy.", documents: ["Consumption report", "Open work orders"] },
 ];
 
-export const reportsList: string[] = [
-  "Equipment Asset Register",
-  "AMC & Warranty Expiry Calendar",
-  "Preventive Maintenance Compliance",
-  "Breakdown Cost by Department",
-  "Energy Consumption Trend",
-  "Critical Asset Downtime",
-  "Open Work Order Ageing",
-  "Vendor Performance Scorecard",
-  "Statutory Inspection Tracker",
-  "Spare Parts Consumption",
-];
-
 export const categoryStats: CategoryStat[] = [
   { label: "HVAC", count: 48, health: 91 },
   { label: "Electrical", count: 36, health: 82 },
@@ -87,15 +74,15 @@ export const categoryStats: CategoryStat[] = [
 ];
 
 export const roleProfiles: RoleProfile[] = [
-  { id: "engineering-management", label: "Engineering Management", subtitle: "Full engineering control center", defaultPage: "dashboard", nav: ["dashboard", "equipment", "maintenance", "workflow", "approvals", "insights", "reports", "settings"], canCreateRequest: true, canManageEquipment: true },
-  { id: "executive", label: "Executive", subtitle: "Costs, risks, approvals, and reports", defaultPage: "dashboard", nav: ["dashboard", "approvals", "insights", "reports"], canCreateRequest: false },
-  { id: "shift-operations", label: "Shift Operations", subtitle: "Live work orders and room impact", defaultPage: "maintenance", nav: ["dashboard", "equipment", "maintenance", "reports"], canCreateRequest: true, canManageEquipment: false },
+  { id: "engineering-management", label: "Engineering Management", subtitle: "Full engineering control center", defaultPage: "dashboard", nav: ["dashboard", "equipment", "maintenance", "workflow", "approvals", "insights", "settings"], canCreateRequest: true, canManageEquipment: true },
+  { id: "executive", label: "Executive", subtitle: "Costs, risks, approvals, and insights", defaultPage: "dashboard", nav: ["dashboard", "approvals", "insights"], canCreateRequest: false },
+  { id: "shift-operations", label: "Shift Operations", subtitle: "Live work orders and room impact", defaultPage: "maintenance", nav: ["dashboard", "equipment", "maintenance"], canCreateRequest: true, canManageEquipment: false },
   { id: "technician", label: "Technician", subtitle: "Assigned work and asset QR records", defaultPage: "maintenance", nav: ["equipment", "maintenance"], canCreateRequest: true, canManageEquipment: false },
-  { id: "planning-compliance", label: "Planning & Compliance", subtitle: "PM, statutory, checklists, and reports", defaultPage: "maintenance", nav: ["dashboard", "equipment", "maintenance", "workflow", "insights", "reports", "settings"], canCreateRequest: false, canManageEquipment: true },
-  { id: "finance-commercial", label: "Finance & Commercial", subtitle: "Approvals, spend, vendors, AMC risk", defaultPage: "approvals", nav: ["dashboard", "approvals", "insights", "reports", "settings"], canCreateRequest: false },
+  { id: "planning-compliance", label: "Planning & Compliance", subtitle: "PM, statutory, checklists, and compliance", defaultPage: "maintenance", nav: ["dashboard", "equipment", "maintenance", "workflow", "insights", "settings"], canCreateRequest: false, canManageEquipment: true },
+  { id: "finance-commercial", label: "Finance & Commercial", subtitle: "Approvals, spend, vendors, AMC risk", defaultPage: "approvals", nav: ["dashboard", "approvals", "insights", "settings"], canCreateRequest: false },
   { id: "vendor", label: "Vendor / AMC Partner", subtitle: "Assigned service visits and equipment context", defaultPage: "maintenance", nav: ["equipment", "maintenance"], canCreateRequest: false, canManageEquipment: false },
-  { id: "hotel-operations", label: "Hotel Operations", subtitle: "Guest impact and department requests", defaultPage: "maintenance", nav: ["dashboard", "maintenance", "reports"], canCreateRequest: true },
-  { id: "system-admin", label: "System Admin", subtitle: "Configuration, workflows, and controls", defaultPage: "settings", nav: ["dashboard", "workflow", "reports", "settings"], canCreateRequest: false },
+  { id: "hotel-operations", label: "Hotel Operations", subtitle: "Guest impact and department requests", defaultPage: "maintenance", nav: ["dashboard", "maintenance"], canCreateRequest: true },
+  { id: "system-admin", label: "System Admin", subtitle: "Configuration, workflows, and controls", defaultPage: "settings", nav: ["dashboard", "workflow", "settings"], canCreateRequest: false },
 ];
 
 export const navItems = [
@@ -105,7 +92,6 @@ export const navItems = [
   { id: "workflow", label: "Workflow", href: "/workflow" },
   { id: "approvals", label: "Approvals", href: "/approvals" },
   { id: "insights", label: "Expenditure", href: "/insights" },
-  { id: "reports", label: "Reports", href: "/reports" },
   { id: "settings", label: "Configuration", href: "/settings" },
 ];
 

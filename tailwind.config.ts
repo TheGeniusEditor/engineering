@@ -27,10 +27,10 @@ const config: Config = {
         },
       },
       boxShadow: {
-        card:       "0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 4px 0 rgb(0 0 0 / 0.04)",
-        "card-hover": "0 4px 16px 0 rgb(0 0 0 / 0.10), 0 2px 4px 0 rgb(0 0 0 / 0.05)",
-        sm:         "0 1px 3px 0 rgb(0 0 0 / 0.06)",
-        md:         "0 4px 12px 0 rgb(0 0 0 / 0.08), 0 2px 4px 0 rgb(0 0 0 / 0.05)",
+        card:         "0 1px 2px rgba(14,19,28,0.04), 0 1px 1px rgba(14,19,28,0.03)",
+        "card-hover": "0 4px 16px rgba(14,19,28,0.08), 0 2px 4px rgba(14,19,28,0.04)",
+        sm:           "0 1px 2px rgba(14,19,28,0.04), 0 1px 1px rgba(14,19,28,0.03)",
+        md:           "0 4px 12px rgba(14,19,28,0.06), 0 1px 2px rgba(14,19,28,0.04)",
       },
       backgroundOpacity: {
         8: "0.08",

@@ -2,103 +2,119 @@
 
 import { useState } from "react";
 import { configurationSections } from "@/lib/data";
-import PanelHeader from "@/components/ui/PanelHeader";
-import clsx from "clsx";
 import {
-  Settings2, ChevronRight, Tag, MapPin, Users, ShieldCheck,
-  DollarSign, ClipboardList, Info, ChevronLeft,
+  Settings2, ChevronRight, ChevronLeft, Tag, MapPin, Users, ShieldCheck,
+  DollarSign, ClipboardList, Info, Plus,
 } from "lucide-react";
 
 const SECTION_ICONS: Record<string, React.ElementType> = {
-  "asset-categories": Tag,
-  "location-hierarchy": MapPin,
-  "vendor-masters": Users,
-  "sla-matrix": ShieldCheck,
-  "approval-limits": DollarSign,
+  "asset-categories":    Tag,
+  "location-hierarchy":  MapPin,
+  "vendor-masters":      Users,
+  "sla-matrix":          ShieldCheck,
+  "approval-limits":     DollarSign,
   "checklist-templates": ClipboardList,
+};
+
+const SECTION_COLORS: Record<string, string> = {
+  "asset-categories":    "#0f172a",
+  "location-hierarchy":  "#1e293b",
+  "vendor-masters":      "#334155",
+  "sla-matrix":          "#475569",
+  "approval-limits":     "#334155",
+  "checklist-templates": "#1e293b",
 };
 
 type Section = typeof configurationSections[number];
 
+const auditLog = [
+  { user: "Arvind Menon",        action: "Updated SLA matrix – Critical priority response time",           time: "Today, 8:00 AM"   },
+  { user: "Engineering QA",      action: "Added Chiller PM checklist template v2.1",                       time: "Today, 9:40 AM"   },
+  { user: "Finance Controller",  action: "Updated approval limit for major repairs to Rs 2,00,000",        time: "May 06, 2026"     },
+  { user: "Engineering Planner", action: "Added Tower D – Residences to location hierarchy",               time: "Yesterday, 6:30 PM"},
+];
+
 export default function Settings() {
   const [selected, setSelected] = useState<Section | null>(null);
 
+  // ── Detail view ───────────────────────────────────────────────────────────
   if (selected) {
     const Icon = SECTION_ICONS[selected.id] ?? Settings2;
+    const bg   = SECTION_COLORS[selected.id] ?? "#0f172a";
     return (
       <div className="max-w-5xl mx-auto space-y-5">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-slate-500">
-          <button
-            className="flex items-center gap-1 hover:text-slate-900 transition-colors"
-            onClick={() => setSelected(null)}
-          >
-            <ChevronLeft size={14} /> Configuration
-          </button>
-          <ChevronRight size={14} />
-          <span className="text-slate-800 font-medium capitalize">{selected.title}</span>
-        </div>
+        <button onClick={() => setSelected(null)} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#64748b", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>
+          <ChevronLeft size={14} /> Configuration
+        </button>
 
-        {/* Section header */}
-        <div className="card p-6 flex flex-col sm:flex-row gap-5 items-start">
-          <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center flex-shrink-0">
-            <Icon size={22} />
-          </div>
-          <div className="flex-1 space-y-1">
-            <h2 className="text-xl font-bold text-slate-900 capitalize">{selected.title}</h2>
-            <p className="text-sm text-slate-500 leading-relaxed">{selected.description}</p>
-            <div className="flex items-center gap-4 pt-1 text-xs text-slate-400">
-              <span>Owner: <span className="font-semibold text-slate-600">{selected.owner}</span></span>
-              <span>Updated: <span className="font-semibold text-slate-600">{selected.updated}</span></span>
+        {/* Section hero */}
+        <div style={{ borderRadius: 12, background: bg, color: "white", padding: "20px 24px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: -40, right: -40, width: 140, height: 140, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.05)", pointerEvents: "none" }} />
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+            <div style={{ width: 46, height: 46, borderRadius: 11, background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Icon size={22} color="white" />
+            </div>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, letterSpacing: "-0.03em", textTransform: "capitalize" }}>{selected.title}</h2>
+              <p style={{ margin: "5px 0 0", fontSize: 12.5, color: "rgba(255,255,255,0.55)", maxWidth: 520 }}>{selected.description}</p>
+              <div style={{ marginTop: 10, display: "flex", gap: 16 }}>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Owner: <strong style={{ color: "rgba(255,255,255,0.7)" }}>{selected.owner}</strong></span>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Updated: <strong style={{ color: "rgba(255,255,255,0.7)" }}>{selected.updated}</strong></span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Rules */}
-        <div className="card p-5 space-y-3">
-          <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide flex items-center gap-2">
-            <Info size={14} className="text-slate-500" /> Configuration Rules
-          </h3>
-          <ul className="space-y-2">
+        <div style={{ padding: "18px 20px", borderRadius: 12, border: "1px solid #e2e8f0", background: "white" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 14 }}>
+            <Info size={13} color="#94a3b8" />
+            <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "#94a3b8" }}>Configuration Rules</span>
+          </div>
+          <ul style={{ margin: 0, padding: 0, listStyle: "none" }} className="space-y-2">
             {selected.rules.map((rule, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm text-slate-600">
-                <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
-                  {i + 1}
-                </span>
-                {rule}
+              <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <span style={{ width: 20, height: 20, borderRadius: "50%", background: "#f1f5f9", color: "#334155", fontSize: 10, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>{i + 1}</span>
+                <span style={{ fontSize: 13, color: "#475569", lineHeight: 1.5 }}>{rule}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Master Data Table */}
-        <div className="card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Master Data</h3>
-            <button className="btn btn-sm btn-primary">+ Add Record</button>
+        {/* Master data table */}
+        <div style={{ borderRadius: 12, border: "1px solid #e2e8f0", background: "white", overflow: "hidden" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid #f1f5f9" }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "#94a3b8" }}>Master Data</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginTop: 2 }}>{selected.records.length} records</div>
+            </div>
+            <button style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 8, background: "#0f172a", color: "white", border: "none", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+              <Plus size={13} /> Add Record
+            </button>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] text-sm">
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
               <thead>
-                <tr className="border-b border-slate-200">
-                  {selected.fields.map((field) => (
-                    <th key={field} className="table-head-cell">{field}</th>
+                <tr style={{ background: "#f8fafc" }}>
+                  {selected.fields.map(f => (
+                    <th key={f} style={{ padding: "9px 14px", textAlign: "left", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.12em", whiteSpace: "nowrap" }}>{f}</th>
                   ))}
-                  <th className="table-head-cell text-right">Actions</th>
+                  <th style={{ padding: "9px 14px", textAlign: "right", fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.12em" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {selected.records.map((row, ri) => (
-                  <tr key={ri} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                  <tr
+                    key={ri}
+                    style={{ borderBottom: ri < selected.records.length - 1 ? "1px solid #f1f5f9" : "none", transition: "background 100ms" }}
+                    onMouseEnter={e => e.currentTarget.style.background = "#fafafa"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  >
                     {row.map((cell, ci) => (
-                      <td key={ci} className={clsx("table-cell", ci === 0 && "font-semibold text-slate-800")}>
-                        {cell}
-                      </td>
+                      <td key={ci} style={{ padding: "11px 14px", fontSize: 13, color: ci === 0 ? "#0f172a" : "#475569", fontWeight: ci === 0 ? 700 : 400 }}>{cell}</td>
                     ))}
-                    <td className="table-cell text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button className="btn btn-sm text-xs">Edit</button>
-                      </div>
+                    <td style={{ padding: "11px 14px", textAlign: "right" }}>
+                      <button style={{ padding: "4px 10px", borderRadius: 6, background: "#f8fafc", border: "1px solid #e2e8f0", color: "#334155", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>Edit</button>
                     </td>
                   </tr>
                 ))}
@@ -106,102 +122,111 @@ export default function Settings() {
             </table>
           </div>
         </div>
-
-        <button className="btn flex items-center gap-2" onClick={() => setSelected(null)}>
-          <ChevronLeft size={14} /> Back to Configuration
-        </button>
       </div>
     );
   }
 
+  // ── List view ─────────────────────────────────────────────────────────────
+  const sysStats = [
+    { label: "Asset Categories",    value: configurationSections.find(s => s.id === "asset-categories")?.records.length ?? 0 },
+    { label: "Locations Mapped",    value: configurationSections.find(s => s.id === "location-hierarchy")?.records.length ?? 0 },
+    { label: "Vendors Registered",  value: configurationSections.find(s => s.id === "vendor-masters")?.records.length ?? 0 },
+    { label: "SLA Priority Tiers",  value: configurationSections.find(s => s.id === "sla-matrix")?.records.length ?? 0 },
+  ];
+
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <div className="card p-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-        <div className="flex-1 space-y-1">
-          <p className="eyebrow">System administration</p>
-          <h2 className="text-xl font-bold text-slate-900">Configuration</h2>
-          <p className="text-sm text-slate-500">
-            Manage master data, SLA rules, approval limits, vendor masters, asset categories, and checklist templates.
-          </p>
-        </div>
-        <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center gap-2">
-          <ShieldCheck size={15} className="text-slate-500 flex-shrink-0" />
-          <p className="text-xs text-slate-600 font-medium">Changes require Chief Engineer approval.</p>
+
+      {/* ── Dark hero ───────────────────────────────────────────────────────── */}
+      <div style={{ borderRadius: 12, background: "#0f172a", color: "white", padding: "20px 24px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: -50, right: -50, width: 180, height: 180, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.04)", pointerEvents: "none" }} />
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, position: "relative" }}>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>System Administration</div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0, letterSpacing: "-0.03em" }}>Configuration</h1>
+            <p style={{ margin: "6px 0 0", fontSize: 13, color: "rgba(255,255,255,0.5)", maxWidth: 520 }}>
+              Manage master data, SLA rules, approval limits, vendor masters, asset categories, and checklist templates.
+            </p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderRadius: 9, background: "rgba(255,255,255,0.07)", flexShrink: 0 }}>
+            <ShieldCheck size={13} color="rgba(255,255,255,0.5)" />
+            <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>Changes require Chief Engineer approval</span>
+          </div>
         </div>
       </div>
 
-      {/* Config Sections Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {configurationSections.map((section) => {
+      {/* ── System stats ───────────────────────────────────────────────────── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+        {sysStats.map((s, i) => (
+          <div key={s.label} style={{ padding: "16px 18px", borderRadius: 10, border: "1px solid #e2e8f0", background: "white" }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.04em", lineHeight: 1 }}>{s.value}</div>
+            <div style={{ marginTop: 4, fontSize: 11.5, fontWeight: 700, color: "#334155" }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Config sections grid ───────────────────────────────────────────── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+        {configurationSections.map(section => {
           const Icon = SECTION_ICONS[section.id] ?? Settings2;
+          const bg   = SECTION_COLORS[section.id] ?? "#0f172a";
           return (
             <button
               key={section.id}
-              className="card p-5 text-left space-y-4 hover:border-slate-300 hover:shadow-card-hover transition-all"
               onClick={() => setSelected(section)}
+              style={{ display: "flex", flexDirection: "column", gap: 14, padding: "18px 20px", borderRadius: 12, border: "1px solid #e2e8f0", background: "white", textAlign: "left", cursor: "pointer", transition: "border-color 150ms, box-shadow 150ms" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "#0f172a"; e.currentTarget.style.boxShadow = "0 2px 12px rgba(14,19,28,0.07)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "none"; }}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center flex-shrink-0">
-                  <Icon size={18} />
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Icon size={18} color="white" />
                 </div>
-                <ChevronRight size={16} className="text-slate-300 mt-1 flex-shrink-0" />
+                <ChevronRight size={15} color="#94a3b8" />
               </div>
-              <div className="space-y-1">
-                <p className="font-bold text-slate-900 capitalize">{section.title}</p>
-                <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{section.description}</p>
+              <div>
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: "#0f172a", textTransform: "capitalize" }}>{section.title}</div>
+                <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 4, lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>
+                  {section.description}
+                </div>
               </div>
-              <div className="flex items-center justify-between pt-1 text-xs text-slate-400 border-t border-slate-100">
-                <span>{section.records.length} records</span>
-                <span>Updated {section.updated}</span>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 10, borderTop: "1px solid #f1f5f9" }}>
+                <span style={{ fontSize: 11, color: "#94a3b8" }}>{section.records.length} records</span>
+                <span style={{ fontSize: 11, color: "#94a3b8" }}>Updated {section.updated}</span>
               </div>
             </button>
           );
         })}
       </div>
 
-      {/* Quick Stats */}
-      <div className="card p-5">
-        <PanelHeader icon={Settings2} title="System Summary" action="Configuration overview" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
-          {[
-            { label: "Asset Categories", value: configurationSections.find((s) => s.id === "asset-categories")?.records.length ?? 0 },
-            { label: "Locations Mapped", value: configurationSections.find((s) => s.id === "location-hierarchy")?.records.length ?? 0 },
-            { label: "Vendors Registered", value: configurationSections.find((s) => s.id === "vendor-masters")?.records.length ?? 0 },
-            { label: "SLA Priority Tiers", value: configurationSections.find((s) => s.id === "sla-matrix")?.records.length ?? 0 },
-          ].map((s) => (
-            <div key={s.label} className="rounded-xl border border-slate-200 p-4 text-center space-y-1">
-              <p className="text-2xl font-bold text-slate-900">{s.value}</p>
-              <p className="text-xs text-slate-500 font-medium">{s.label}</p>
+      {/* ── Audit trail ────────────────────────────────────────────────────── */}
+      <div style={{ borderRadius: 10, border: "1px solid #e2e8f0", background: "white", overflow: "hidden" }}>
+        <div style={{ padding: "14px 18px", borderBottom: "1px solid #f1f5f9" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "#94a3b8" }}>Audit Log</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginTop: 2 }}>Recent configuration changes</div>
+        </div>
+        <div style={{ padding: "10px 14px" }} className="space-y-1">
+          {auditLog.map((entry, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 12px", borderRadius: 8, transition: "background 100ms" }}
+              onMouseEnter={e => e.currentTarget.style.background = "#fafafa"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+            >
+              <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#f1f5f9", border: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <span style={{ fontSize: 9.5, fontWeight: 800, color: "#334155" }}>
+                  {entry.user.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                </span>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, color: "#334155" }}>
+                  <strong style={{ color: "#0f172a" }}>{entry.user}</strong> · {entry.action}
+                </div>
+                <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 2 }}>{entry.time}</div>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Audit Trail Preview */}
-      <div className="card p-5">
-        <PanelHeader icon={ClipboardList} title="Recent Configuration Changes" action="Audit log" />
-        <div className="space-y-2 mt-1">
-          {[
-            { user: "Arvind Menon", action: "Updated SLA matrix – Critical priority response time", time: "Today, 8:00 AM" },
-            { user: "Engineering QA", action: "Added Chiller PM checklist template v2.1", time: "Today, 9:40 AM" },
-            { user: "Finance Controller", action: "Updated approval limit for major repairs to Rs 2,00,000", time: "May 06, 2026" },
-            { user: "Engineering Planner", action: "Added Tower D – Residences to location hierarchy", time: "Yesterday, 6:30 PM" },
-          ].map((entry, i) => (
-            <div key={i} className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
-              <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-[10px] font-bold text-slate-700">
-                  {entry.user.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm text-slate-700"><span className="font-semibold">{entry.user}</span> · {entry.action}</p>
-                <p className="text-xs text-slate-400 mt-0.5">{entry.time}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

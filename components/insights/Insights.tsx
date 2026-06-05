@@ -2,19 +2,18 @@
 
 import { useState, useMemo } from "react";
 import { useStore } from "@/lib/store";
-import { categoryStats, reportsList } from "@/lib/data";
+import { categoryStats } from "@/lib/data";
 import PanelHeader from "@/components/ui/PanelHeader";
 import Meter from "@/components/ui/Meter";
 import clsx from "clsx";
 import {
   BarChart3, TrendingUp, TrendingDown, Wrench, AlertTriangle,
-  Building2, Clock, CheckCircle2, Download, FileText, Activity,
+  Building2, Clock, CheckCircle2, Download, Activity,
   Users, Zap, ShieldCheck,
 } from "lucide-react";
 
 const TABS = [
   { id: "dashboard", label: "Live Dashboard", icon: Activity },
-  { id: "reports", label: "Reports", icon: FileText },
 ];
 
 const MTTR_DATA = [
@@ -256,31 +255,6 @@ export default function Insights() {
             </div>
           </div>
         </>
-      )}
-
-      {tab === "reports" && (
-        <div className="card p-5">
-          <PanelHeader icon={FileText} title="Downloadable Reports" action={`${reportsList.length} available`} />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1">
-            {/* reportsList is string[] */}
-            {reportsList.map((name, i) => (
-              <div key={name} className="rounded-xl border border-slate-200 p-4 flex items-center justify-between gap-4 hover:border-slate-300 hover:shadow-card-hover transition-all">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0">
-                    <FileText size={15} className="text-slate-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-slate-800 text-sm truncate">{name}</p>
-                    <p className="text-xs text-slate-400">Report #{String(i + 1).padStart(3, "0")} · PDF / Excel</p>
-                  </div>
-                </div>
-                <button className="btn btn-sm flex items-center gap-1.5 flex-shrink-0">
-                  <Download size={13} /> Export
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
       )}
 
       {/* Work Order Open/Closed Summary */}

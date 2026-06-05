@@ -3,11 +3,8 @@
 import { useState, useMemo } from "react";
 import { useStore } from "@/lib/store";
 import { workflowTemplates } from "@/lib/data";
-import PanelHeader from "@/components/ui/PanelHeader";
-import StatusPill from "@/components/ui/StatusPill";
-import clsx from "clsx";
 import {
-  GitBranch, Plus, ChevronRight, CheckCircle2, Clock,
+  GitBranch, Plus, ChevronRight, ChevronLeft, CheckCircle2, Clock,
   Layers, Zap, ListChecks, Play, ArrowRight, Users, TimerReset, AlertTriangle,
 } from "lucide-react";
 
@@ -17,28 +14,59 @@ const TEMPLATE_ICONS: Record<string, React.ElementType> = {
   capex: Layers,
 };
 
+const STEP_TYPE_CFG: Record<string, { bg: string; color: string }> = {
+  Intake:     { bg: "#f8fafc", color: "#64748b" },
+  Assessment: { bg: "#f1f5f9", color: "#334155" },
+  Approval:   { bg: "#fff7ed", color: "#c2410c" },
+  Execution:  { bg: "#f0fdf4", color: "#15803d" },
+  Closure:    { bg: "#f0f9ff", color: "#0369a1" },
+  Review:     { bg: "#fafafa", color: "#475569" },
+};
+
 type View = "list" | "template" | "builder";
+
+function StepRow({ step, index, total }: { step: { name: string; owner: string; sla: string; type: string; approval: string }; index: number; total: number }) {
+  const cfg = STEP_TYPE_CFG[step.type] ?? { bg: "#f8fafc", color: "#64748b" };
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+      {/* connector line */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+        <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#0f172a", color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center" }}>{index + 1}</div>
+        {index < total - 1 && <div style={{ width: 2, flex: 1, minHeight: 16, background: "#f1f5f9", margin: "4px 0" }} />}
+      </div>
+      <div style={{ flex: 1, padding: "12px 14px", borderRadius: 9, border: "1px solid #e2e8f0", background: "white", marginBottom: index < total - 1 ? 4 : 0 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{step.name}</div>
+            <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>{step.owner} · SLA: {step.sla}</div>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 5, background: cfg.bg, color: cfg.color, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              {step.type}
+            </span>
+            {step.approval !== "No" && (
+              <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 5, background: "#fff7ed", color: "#c2410c", border: "1px solid #fed7aa" }}>
+                Approval
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Workflow() {
   const { workflows, addWorkflow } = useStore();
-  const [view, setView] = useState<View>("list");
+  const [view, setView]                       = useState<View>("list");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
-  const [builderName, setBuilderName] = useState("");
-  const [builderDesc, setBuilderDesc] = useState("");
-  const [created, setCreated] = useState(false);
+  const [builderName, setBuilderName]         = useState("");
+  const [builderDesc, setBuilderDesc]         = useState("");
+  const [created, setCreated]                 = useState(false);
 
-  // workflowTemplates is Record<string, WorkflowTemplate> — convert to array
-  const templateEntries = useMemo(
-    () => Object.entries(workflowTemplates),
-    []
-  );
-
-  const detailWorkflow = useMemo(
-    () => workflows.find((w) => w.id === selectedWorkflowId),
-    [workflows, selectedWorkflowId]
-  );
-
+  const templateEntries = useMemo(() => Object.entries(workflowTemplates), []);
+  const detailWorkflow  = useMemo(() => workflows.find(w => w.id === selectedWorkflowId), [workflows, selectedWorkflowId]);
   const selectedTemplate = selectedTemplateId ? workflowTemplates[selectedTemplateId] : null;
 
   const handleCreate = () => {
@@ -56,32 +84,25 @@ export default function Workflow() {
     setCreated(true);
   };
 
-  const resetBuilder = () => {
-    setCreated(false);
-    setBuilderName("");
-    setBuilderDesc("");
-    setSelectedTemplateId(null);
-    setView("list");
-  };
+  const resetBuilder = () => { setCreated(false); setBuilderName(""); setBuilderDesc(""); setSelectedTemplateId(null); setView("list"); };
 
+  // ── Created confirmation ──────────────────────────────────────────────────
   if (created) {
     return (
-      <div className="max-w-xl mx-auto">
-        <div className="card p-10 text-center space-y-5">
-          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto">
-            <CheckCircle2 size={28} className="text-slate-700" />
+      <div className="max-w-lg mx-auto" style={{ paddingTop: 40 }}>
+        <div style={{ padding: "48px 40px", borderRadius: 14, border: "1px solid #e2e8f0", background: "white", textAlign: "center" }}>
+          <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#f0fdf4", border: "2px solid #bbf7d0", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+            <CheckCircle2 size={26} color="#15803d" />
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900">Workflow Created</h2>
-            <p className="text-slate-500 text-sm mt-1">
-              <span className="font-semibold">{builderName}</span> has been added to the workflow register.
-            </p>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em" }}>Workflow Created</div>
+          <div style={{ fontSize: 13, color: "#64748b", marginTop: 6 }}>
+            <strong style={{ color: "#0f172a" }}>{builderName}</strong> has been added to the workflow register.
           </div>
-          <div className="flex justify-center gap-3">
-            <button className="btn btn-primary" onClick={resetBuilder}>
-              <GitBranch size={15} /> View Workflows
+          <div style={{ display: "flex", justifyContent: "center", gap: 10, marginTop: 24 }}>
+            <button onClick={resetBuilder} style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 18px", borderRadius: 8, background: "#0f172a", color: "white", border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+              <GitBranch size={14} /> View Workflows
             </button>
-            <button className="btn" onClick={() => { setCreated(false); setBuilderName(""); setBuilderDesc(""); }}>
+            <button onClick={() => { setCreated(false); setBuilderName(""); setBuilderDesc(""); }} style={{ padding: "10px 18px", borderRadius: 8, background: "white", color: "#334155", border: "1px solid #e2e8f0", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
               Create Another
             </button>
           </div>
@@ -90,97 +111,98 @@ export default function Workflow() {
     );
   }
 
-  /* ── BUILDER ── */
+  // ── Builder ───────────────────────────────────────────────────────────────
   if (view === "builder" && selectedTemplate && selectedTemplateId) {
     return (
-      <div className="max-w-3xl mx-auto space-y-5">
-        <div className="flex items-center gap-2 text-sm text-slate-500">
-          <button className="hover:text-slate-900 transition-colors" onClick={() => setView("template")}>Templates</button>
-          <ChevronRight size={14} />
-          <span className="text-slate-800 font-medium">{selectedTemplate.name}</span>
-        </div>
+      <div className="max-w-3xl mx-auto space-y-4">
+        <button onClick={() => setView("template")} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#64748b", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>
+          <ChevronLeft size={14} /> Templates / {selectedTemplate.name}
+        </button>
 
-        <div className="card p-6 space-y-5">
-          <PanelHeader icon={GitBranch} title="Configure Workflow" action={selectedTemplate.name} />
-          <div className="space-y-1">
-            <label className="label">Workflow Name <span className="text-red-500">*</span></label>
-            <input className="input" placeholder={`e.g. ${selectedTemplate.name} – Tower B`} value={builderName} onChange={(e) => setBuilderName(e.target.value)} />
+        <div style={{ padding: "20px 22px", borderRadius: 12, border: "1px solid #e2e8f0", background: "white" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "#94a3b8", marginBottom: 14 }}>Configure Workflow</div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: "#334155", display: "block", marginBottom: 5 }}>Workflow Name *</label>
+            <input
+              placeholder={`e.g. ${selectedTemplate.name} – Tower B`}
+              value={builderName}
+              onChange={e => setBuilderName(e.target.value)}
+              style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 13, color: "#0f172a", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }}
+            />
           </div>
-          <div className="space-y-1">
-            <label className="label">Description</label>
-            <textarea className="textarea" rows={2} placeholder={selectedTemplate.description} value={builderDesc} onChange={(e) => setBuilderDesc(e.target.value)} />
-          </div>
-        </div>
-
-        <div className="card p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Workflow Steps ({selectedTemplate.steps.length})</h3>
-          <div className="space-y-2">
-            {selectedTemplate.steps.map((step, i) => (
-              <div key={i} className="flex items-start gap-4 p-4 rounded-xl border border-slate-200 bg-slate-50/50">
-                <div className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center mt-0.5">
-                  {i + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-800 text-sm">{step.name}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{step.owner} · SLA: {step.sla}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] uppercase font-semibold tracking-wide text-slate-400">{step.type}</span>
-                    {step.approval !== "No" && (
-                      <span className="text-[10px] bg-slate-100 text-slate-600 font-semibold px-1.5 py-0.5 rounded">Approval: {step.approval}</span>
-                    )}
-                  </div>
-                </div>
-                {i < selectedTemplate.steps.length - 1 && (
-                  <ArrowRight size={14} className="text-slate-300 flex-shrink-0 mt-2" />
-                )}
-              </div>
-            ))}
+          <div>
+            <label style={{ fontSize: 11, fontWeight: 700, color: "#334155", display: "block", marginBottom: 5 }}>Description</label>
+            <textarea
+              rows={2}
+              placeholder={selectedTemplate.description}
+              value={builderDesc}
+              onChange={e => setBuilderDesc(e.target.value)}
+              style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 13, color: "#0f172a", resize: "none", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }}
+            />
           </div>
         </div>
 
-        <div className="flex gap-3">
-          <button className="btn btn-primary" onClick={handleCreate} disabled={!builderName}>
-            <Play size={15} /> Launch Workflow
+        <div style={{ padding: "20px 22px", borderRadius: 12, border: "1px solid #e2e8f0", background: "white" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "#94a3b8", marginBottom: 16 }}>
+            Workflow Steps ({selectedTemplate.steps.length})
+          </div>
+          {selectedTemplate.steps.map((step, i) => (
+            <StepRow key={i} step={step} index={i} total={selectedTemplate.steps.length} />
+          ))}
+        </div>
+
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            onClick={handleCreate}
+            disabled={!builderName}
+            style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 20px", borderRadius: 8, background: builderName ? "#0f172a" : "#e2e8f0", color: builderName ? "white" : "#94a3b8", border: "none", fontSize: 13, fontWeight: 700, cursor: builderName ? "pointer" : "not-allowed" }}
+          >
+            <Play size={14} /> Launch Workflow
           </button>
-          <button className="btn" onClick={() => setView("template")}>Back</button>
+          <button onClick={() => setView("template")} style={{ padding: "10px 18px", borderRadius: 8, background: "white", color: "#334155", border: "1px solid #e2e8f0", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+            Back
+          </button>
         </div>
       </div>
     );
   }
 
-  /* ── TEMPLATE PICKER ── */
+  // ── Template picker ───────────────────────────────────────────────────────
   if (view === "template") {
     return (
       <div className="max-w-4xl mx-auto space-y-5">
-        <div className="flex items-center justify-between">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <p className="eyebrow">New workflow</p>
-            <h2 className="text-xl font-bold text-slate-900 mt-0.5">Choose a Template</h2>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#94a3b8" }}>New Workflow</div>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", margin: "4px 0 0", letterSpacing: "-0.03em" }}>Choose a Template</h2>
           </div>
-          <button className="btn" onClick={() => setView("list")}>Cancel</button>
+          <button onClick={() => setView("list")} style={{ padding: "7px 14px", borderRadius: 8, background: "white", color: "#334155", border: "1px solid #e2e8f0", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>Cancel</button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
           {templateEntries.map(([id, t]) => {
             const Icon = TEMPLATE_ICONS[id] ?? Zap;
             return (
               <button
                 key={id}
-                className="card p-6 text-left space-y-4 hover:border-slate-300 hover:shadow-card-hover transition-all"
                 onClick={() => { setSelectedTemplateId(id); setView("builder"); }}
+                style={{ display: "flex", flexDirection: "column", gap: 14, padding: "20px", borderRadius: 12, border: "1px solid #e2e8f0", background: "white", textAlign: "left", cursor: "pointer", transition: "border-color 150ms, box-shadow 150ms" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "#0f172a"; e.currentTarget.style.boxShadow = "0 2px 12px rgba(14,19,28,0.07)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "none"; }}
               >
-                <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center">
-                  <Icon size={18} />
+                <div style={{ width: 42, height: 42, borderRadius: 10, background: "#0f172a", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Icon size={18} color="white" />
                 </div>
-                <div className="space-y-1">
-                  <p className="font-bold text-slate-900">{t.name}</p>
-                  <p className="text-xs text-slate-500 leading-relaxed">{t.description}</p>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a" }}>{t.name}</div>
+                  <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 4, lineHeight: 1.5 }}>{t.description}</div>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-slate-400">
-                  <ListChecks size={13} />
-                  <span>{t.steps.length} steps</span>
-                  <span className="ml-auto text-slate-600 font-semibold flex items-center gap-1">
-                    Use template <ChevronRight size={13} />
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 10, borderTop: "1px solid #f1f5f9" }}>
+                  <span style={{ fontSize: 11, color: "#94a3b8", display: "flex", alignItems: "center", gap: 5 }}>
+                    <ListChecks size={11} /> {t.steps.length} steps
+                  </span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#334155", display: "flex", alignItems: "center", gap: 4 }}>
+                    Use template <ChevronRight size={11} />
                   </span>
                 </div>
               </button>
@@ -191,174 +213,198 @@ export default function Workflow() {
     );
   }
 
-  /* ── WORKFLOW DETAIL ── */
+  // ── Workflow detail ───────────────────────────────────────────────────────
   if (detailWorkflow) {
     return (
-      <div className="max-w-3xl mx-auto space-y-5">
-        <div className="flex items-center gap-2 text-sm text-slate-500">
-          <button className="hover:text-slate-900 transition-colors" onClick={() => setSelectedWorkflowId(null)}>Workflows</button>
-          <ChevronRight size={14} />
-          <span className="text-slate-800 font-medium">{detailWorkflow.name}</span>
-        </div>
+      <div className="max-w-3xl mx-auto space-y-4">
+        <button onClick={() => setSelectedWorkflowId(null)} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#64748b", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>
+          <ChevronLeft size={14} /> Workflows / {detailWorkflow.name}
+        </button>
 
-        <div className="card p-6 space-y-4">
-          <div className="flex items-start justify-between gap-4">
+        <div style={{ padding: "20px 22px", borderRadius: 12, border: "1px solid #e2e8f0", background: "white" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
             <div>
-              <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold mb-1">{detailWorkflow.template}</p>
-              <h2 className="text-xl font-bold text-slate-900">{detailWorkflow.name}</h2>
-              <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
-                <span className="flex items-center gap-1"><Users size={12} /> {detailWorkflow.owner}</span>
-                <span className="flex items-center gap-1"><TimerReset size={12} /> Updated {detailWorkflow.updated}</span>
-                <span className="flex items-center gap-1"><Clock size={12} /> Used {detailWorkflow.usage}×</span>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "#94a3b8", marginBottom: 4 }}>{detailWorkflow.template}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.03em" }}>{detailWorkflow.name}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 8 }}>
+                {[
+                  { icon: Users,       label: detailWorkflow.owner },
+                  { icon: TimerReset,  label: `Updated ${detailWorkflow.updated}` },
+                  { icon: Clock,       label: `Used ${detailWorkflow.usage}×` },
+                ].map(({ icon: Icon, label }) => (
+                  <span key={label} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5, color: "#64748b" }}>
+                    <Icon size={11} /> {label}
+                  </span>
+                ))}
               </div>
             </div>
-            <StatusPill text={detailWorkflow.status} />
+            <span style={{ padding: "4px 12px", borderRadius: 7, background: "#f0fdf4", color: "#15803d", border: "1px solid #bbf7d0", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+              {detailWorkflow.status}
+            </span>
           </div>
         </div>
 
-        <div className="card p-6 space-y-3">
-          <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Steps ({detailWorkflow.steps.length})</h3>
+        <div style={{ padding: "20px 22px", borderRadius: 12, border: "1px solid #e2e8f0", background: "white" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "#94a3b8", marginBottom: 16 }}>
+            Steps ({detailWorkflow.steps.length})
+          </div>
           {detailWorkflow.steps.map((step, i) => (
-            <div key={i} className="flex items-start gap-4 p-4 rounded-xl border border-slate-200">
-              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center mt-0.5">
-                {i + 1}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-slate-800 text-sm">{step.name}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{step.owner} · SLA: {step.sla}</p>
-              </div>
-              <div className="text-right flex-shrink-0 space-y-1">
-                <span className="text-[10px] uppercase font-semibold tracking-wide text-slate-400 block">{step.type}</span>
-                {step.approval !== "No" && (
-                  <span className="text-[10px] bg-slate-100 text-slate-600 font-semibold px-1.5 py-0.5 rounded block">Approval: {step.approval}</span>
-                )}
-              </div>
-            </div>
+            <StepRow key={i} step={step} index={i} total={detailWorkflow.steps.length} />
           ))}
         </div>
-
-        <button className="btn" onClick={() => setSelectedWorkflowId(null)}>Back to Workflows</button>
       </div>
     );
   }
 
-  /* ── LIST ── */
-  const activeWorkflows = workflows.filter((w) => w.status === "Active");
-  const draftWorkflows = workflows.filter((w) => w.status === "Draft");
+  // ── List ──────────────────────────────────────────────────────────────────
+  const activeWorkflows = workflows.filter(w => w.status === "Active");
+  const draftWorkflows  = workflows.filter(w => w.status === "Draft");
 
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <div className="card p-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-        <div className="flex-1 space-y-1">
-          <p className="eyebrow">Operations management</p>
-          <h2 className="text-xl font-bold text-slate-900">Workflow Manager</h2>
-          <p className="text-sm text-slate-500">Track and launch structured workflows for maintenance, PM, and capital projects.</p>
+
+      {/* ── Dark hero ───────────────────────────────────────────────────────── */}
+      <div style={{ borderRadius: 12, background: "#0f172a", color: "white", padding: "20px 24px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: -50, right: -50, width: 180, height: 180, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.04)", pointerEvents: "none" }} />
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, position: "relative" }}>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>Operations Management</div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0, letterSpacing: "-0.03em" }}>Workflow Manager</h1>
+            <p style={{ margin: "6px 0 0", fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
+              Launch and manage structured workflows for maintenance, PM, and capital projects.
+            </p>
+          </div>
+          <button onClick={() => setView("template")} style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 8, background: "white", color: "#0f172a", border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
+            <Plus size={14} /> New Workflow
+          </button>
         </div>
-        <button className="btn btn-primary" onClick={() => setView("template")}>
-          <Plus size={15} /> New Workflow
-        </button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* ── KPI cards ──────────────────────────────────────────────────────── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
         {[
-          { label: "Total Workflows", value: workflows.length, icon: GitBranch, color: "text-slate-700 bg-slate-100" },
-          { label: "Active", value: activeWorkflows.length, icon: Play, color: "text-slate-600 bg-slate-100" },
-          { label: "Total Steps", value: workflows.reduce((s, w) => s + w.steps.length, 0), icon: ListChecks, color: "text-slate-600 bg-slate-100" },
-          { label: "Templates", value: templateEntries.length, icon: Layers, color: "text-slate-600 bg-slate-100" },
-        ].map((s) => {
-          const Icon = s.icon;
+          { label: "Total Workflows", value: workflows.length,                                       icon: GitBranch },
+          { label: "Active",          value: activeWorkflows.length,                                  icon: Play      },
+          { label: "Total Steps",     value: workflows.reduce((s, w) => s + w.steps.length, 0),      icon: ListChecks},
+          { label: "Templates",       value: templateEntries.length,                                  icon: Layers    },
+        ].map((kpi, i) => {
+          const Icon = kpi.icon;
           return (
-            <div key={s.label} className="card p-4 space-y-2">
-              <div className={clsx("w-9 h-9 rounded-lg flex items-center justify-center", s.color)}>
-                <Icon size={18} />
+            <div key={i} style={{ padding: "16px 18px", borderRadius: 10, border: "1px solid #e2e8f0", background: "white" }}>
+              <div style={{ width: 34, height: 34, borderRadius: 9, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
+                <Icon size={16} color="#0f172a" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">{s.value}</p>
-              <p className="text-xs font-medium text-slate-500">{s.label}</p>
+              <div style={{ fontSize: 28, fontWeight: 800, color: "#0f172a", letterSpacing: "-0.04em", lineHeight: 1 }}>{kpi.value}</div>
+              <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#334155" }}>{kpi.label}</div>
             </div>
           );
         })}
       </div>
 
-      {/* Active Workflows */}
+      {/* ── Active workflows ───────────────────────────────────────────────── */}
       {activeWorkflows.length > 0 && (
-        <div className="card p-5">
-          <PanelHeader icon={Play} title="Active Workflows" action={`${activeWorkflows.length} running`} />
-          <div className="space-y-3">
-            {activeWorkflows.map((w) => (
+        <div style={{ borderRadius: 10, border: "1px solid #e2e8f0", background: "white", overflow: "hidden" }}>
+          <div style={{ padding: "14px 18px", borderBottom: "1px solid #f1f5f9" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "#94a3b8" }}>Active Workflows</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginTop: 2 }}>{activeWorkflows.length} running</div>
+          </div>
+          <div style={{ padding: "10px 14px" }} className="space-y-2">
+            {activeWorkflows.map(w => (
               <div
                 key={w.id}
-                className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50/30 transition-all cursor-pointer"
                 onClick={() => setSelectedWorkflowId(w.id)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 14,
+                  padding: "14px 16px", borderRadius: 9, border: "1px solid #e2e8f0",
+                  cursor: "pointer", transition: "border-color 150ms, box-shadow 150ms",
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "#0f172a"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(14,19,28,0.06)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "none"; }}
               >
-                <div className="flex-1 min-w-0 space-y-1">
-                  <div className="flex items-center gap-3">
-                    <p className="font-semibold text-slate-800 truncate">{w.name}</p>
-                    <StatusPill text={w.status} />
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-slate-400">
-                    <span className="flex items-center gap-1"><Users size={12} />{w.owner}</span>
-                    <span className="flex items-center gap-1"><ListChecks size={12} />{w.steps.length} steps</span>
-                    <span className="flex items-center gap-1"><Clock size={12} />Used {w.usage}×</span>
+                <div style={{ width: 36, height: 36, borderRadius: 9, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {(() => { const Icon = TEMPLATE_ICONS[w.template] ?? GitBranch; return <Icon size={15} color="#0f172a" />; })()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{w.name}</div>
+                  <div style={{ display: "flex", gap: 12, marginTop: 3 }}>
+                    {[
+                      { icon: Users,    label: w.owner },
+                      { icon: ListChecks,label: `${w.steps.length} steps` },
+                      { icon: Clock,    label: `Used ${w.usage}×` },
+                    ].map(({ icon: Icon, label }) => (
+                      <span key={label} style={{ fontSize: 11, color: "#94a3b8", display: "flex", alignItems: "center", gap: 4 }}>
+                        <Icon size={10} /> {label}
+                      </span>
+                    ))}
                   </div>
                 </div>
-                <div className="text-right flex-shrink-0 text-xs text-slate-400">
-                  Updated {w.updated}
-                </div>
+                <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 5, background: "#f0fdf4", color: "#15803d", border: "1px solid #bbf7d0", fontWeight: 700, flexShrink: 0 }}>Active</span>
+                <span style={{ fontSize: 11, color: "#94a3b8", flexShrink: 0 }}>Updated {w.updated}</span>
+                <ChevronRight size={14} color="#94a3b8" />
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Templates Quick Launch */}
-      <div className="card p-5">
-        <PanelHeader icon={Layers} title="Quick Launch Templates" action="Standard workflows" />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* ── Template quick launch ──────────────────────────────────────────── */}
+      <div style={{ borderRadius: 10, border: "1px solid #e2e8f0", background: "white", overflow: "hidden" }}>
+        <div style={{ padding: "14px 18px", borderBottom: "1px solid #f1f5f9" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "#94a3b8" }}>Quick Launch Templates</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginTop: 2 }}>Standard workflows</div>
+        </div>
+        <div style={{ padding: "14px", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
           {templateEntries.map(([id, t]) => {
             const Icon = TEMPLATE_ICONS[id] ?? Zap;
             return (
               <button
                 key={id}
-                className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50/40 transition-all text-left"
                 onClick={() => { setSelectedTemplateId(id); setView("builder"); }}
+                style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 9, border: "1px solid #e2e8f0", background: "white", textAlign: "left", cursor: "pointer", transition: "border-color 150ms, box-shadow 150ms" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "#0f172a"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(14,19,28,0.06)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "none"; }}
               >
-                <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center flex-shrink-0">
-                  <Icon size={16} />
+                <div style={{ width: 36, height: 36, borderRadius: 9, background: "#0f172a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon size={15} color="white" />
                 </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-slate-800 text-sm truncate">{t.name}</p>
-                  <p className="text-xs text-slate-400">{t.steps.length} steps</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.name}</div>
+                  <div style={{ fontSize: 10.5, color: "#94a3b8", marginTop: 1 }}>{t.steps.length} steps</div>
                 </div>
-                <ChevronRight size={16} className="text-slate-300 ml-auto flex-shrink-0" />
+                <ChevronRight size={13} color="#94a3b8" style={{ flexShrink: 0 }} />
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Draft Workflows */}
+      {/* ── Draft workflows ────────────────────────────────────────────────── */}
       {draftWorkflows.length > 0 && (
-        <div className="card p-5">
-          <PanelHeader icon={Clock} title="Draft Workflows" action={`${draftWorkflows.length} total`} />
-          <div className="space-y-2">
-            {draftWorkflows.map((w) => (
+        <div style={{ borderRadius: 10, border: "1px solid #e2e8f0", background: "white", overflow: "hidden" }}>
+          <div style={{ padding: "14px 18px", borderBottom: "1px solid #f1f5f9" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.16em", color: "#94a3b8" }}>Draft Workflows</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a", marginTop: 2 }}>{draftWorkflows.length} total</div>
+          </div>
+          <div style={{ padding: "10px 14px" }} className="space-y-2">
+            {draftWorkflows.map(w => (
               <div
                 key={w.id}
-                className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 hover:border-slate-300 transition-all cursor-pointer opacity-70 hover:opacity-100"
                 onClick={() => setSelectedWorkflowId(w.id)}
+                style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 9, border: "1px solid #f1f5f9", cursor: "pointer", opacity: 0.75, transition: "opacity 150ms" }}
+                onMouseEnter={e => e.currentTarget.style.opacity = "1"}
+                onMouseLeave={e => e.currentTarget.style.opacity = "0.75"}
               >
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-700 truncate">{w.name}</p>
-                  <p className="text-xs text-slate-400">{w.steps.length} steps · Owner: {w.owner}</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{w.name}</div>
+                  <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>{w.steps.length} steps · {w.owner}</div>
                 </div>
-                <StatusPill text={w.status} />
+                <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 5, background: "#f8fafc", color: "#64748b", border: "1px solid #e2e8f0", fontWeight: 700 }}>Draft</span>
               </div>
             ))}
           </div>
         </div>
       )}
+
     </div>
   );
 }
